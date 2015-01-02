@@ -11,12 +11,12 @@ CXX_OBJS = $(CXX_SRCS:.cc=.o)
 RESOURCES = libwhatsapp.res
 
 STRIP = strip
-CC = i686-w64-mingw32-gcc
-CXX = i686-w64-mingw32-g++
-STRIP = i686-w64-mingw32-strip
-RES = i686-w64-mingw32-windres
+CC=cc
+CXX=g++
+STRIP=strip
+RES=windres
 LD = $(CXX)
-CFLAGS_PURPLE = $(shell mingw32-pkg-config --cflags purple)
+CFLAGS_PURPLE = $(shell pkg-config --cflags glib-2.0)
 CFLAGS = \
     -O2 \
     -m32 \
@@ -25,10 +25,11 @@ CFLAGS = \
     -fPIC \
     -DPURPLE_PLUGINS \
     -DPIC \
+    -I..\Pidgin-2.10.11\libpurple \
     $(CFLAGS_PURPLE) \
     $(EXTRAINCLUDES)
 
-LIBS_PURPLE = $(shell mingw32-pkg-config --libs purple)  -static-libgcc -static-libstdc++ $(EXTRALIBS)
+LIBS_PURPLE = $(shell pkg-config --libs glib-2.0)  -static-libgcc -static-libstdc++ -L"C:\Program Files (x86)\Pidgin" -lpurple $(EXTRALIBS)
 LDFLAGS = -shared
 
 %.o: %.c
@@ -42,8 +43,8 @@ $(LIBNAME): $(C_OBJS) $(CXX_OBJS) $(RESOURCES)
 	$(LD) $(LDFLAGS) -o $@ $^ $(LIBS_PURPLE)
 	$(STRIP) -s $@
 
-PLUGIN_DIR_PURPLE:=$(shell mingw32-pkg-config --variable=plugindir purple)
-DATA_ROOT_DIR_PURPLE:=$(shell mingw32-pkg-config --variable=datarootdir purple)
+PLUGIN_DIR_PURPLE:=$(shell pkg-config --variable=plugindir purple)
+DATA_ROOT_DIR_PURPLE:=$(shell pkg-config --variable=datarootdir purple)
 
 .PHONY: install
 install: $(LIBNAME)
@@ -54,7 +55,7 @@ uninstall: $(LIBNAME)
 	rm $(PLUGIN_DIR_PURPLE)/$(LIBNAME)
 
 .PHONY: strip
-strip:	$(LIBNAME)
+strip:  $(LIBNAME)
 	$(STRIP) --strip-debug --discard-locals $(LIBNAME)
 
 .PHONY: debug
@@ -67,4 +68,3 @@ clean:
 	-rm *.o
 	-rm $(RESOURCES)
 	-rm $(LIBNAME)
-
